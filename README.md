@@ -16,6 +16,17 @@ The BAMP algorithms and Replica results are implemented base on the following pa
 * OAMP_realcov_art_signal.m: Orthogonal message passing algorithm with Polynomial estimator for artificial signal and noise from real data.
 * Real data are generated following the methodology described in [Empirical Bayes PCA in high dimensions](https://arxiv.org/abs/2012.11676)
 
-### BAMP and Replica
-* Refer to [Structured-PCA-](https://github.com/fcamilli95/Structured-PCA-)
+### BAMP
+BAMP code is based on [Structured-PCA-](https://github.com/fcamilli95/Structured-PCA-)
+* BAMP_quartic.m/BAMP_sestic.m: Implements the BAMP algorithm for quartic/sestic potential with Rademacher prior, sparse Rademacher prior, and 2-Point prior.
+* BAMP_SE_quartic.m/BAMP_SE_quartic_2Points: State evolution of BAMP with quartic potential for sparse Rademacher prior/2-Point prior.
+* BAMP_SE_sestic.m/BAMP_SE_sestic_2Points: State evolution of BAMP with sestic potential for Rademacher prior/2-Point prior.
+
+### Replica PCA
+Replica code is based on [Structured-PCA-](https://github.com/fcamilli95/Structured-PCA-)
+
+### data
+density_freecum.m/density_freecum_power6.m: Generates free cumulants of quartic/sestic potential. This code is from [Structured-PCA-](https://github.com/fcamilli95/Structured-PCA-)
+freecumulants_u/freecumulants_sestic: A Mathematica code file that generates free cumulants based on a new recursive formula, which has been proven correct and will be shown in a subsequent paper.
+
 
