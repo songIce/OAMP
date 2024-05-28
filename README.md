@@ -27,6 +27,5 @@ Replica code is based on [Structured-PCA-](https://github.com/fcamilli95/Structu
 
 ### data
 density_freecum.m/density_freecum_power6.m: Generates free cumulants of quartic/sestic potential. This code is from [Structured-PCA-](https://github.com/fcamilli95/Structured-PCA-)
-freecumulants_u/freecumulants_sestic: A Mathematica code file that generates free cumulants based on a new recursive formula, which has been proven correct and will be shown in a subsequent paper.
 
 
