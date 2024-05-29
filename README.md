@@ -7,6 +7,9 @@ The BAMP algorithms and Replica results are implemented base on the following pa
 * [Structured-PCA-](https://github.com/fcamilli95/Structured-PCA-)
 
 # Content
+
+OAMP_demo: A MATLAB Live Script that implements the OAMP algorithm with both optimal Resolvent and polynomial estimators.
+
 ### OAMP 
 * OAMP.m: Optimal orthogonal message passing algorithm with Resolvent estimator
 * OAMP_SE_FP: Solves Fixed points of SE and calculates corresponding free energy
