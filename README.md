@@ -1,5 +1,5 @@
 # OAMP
-Matlab code for Structured PCA with Orthogonal Approximate Message Passing(OAMP).
+Matlab code for [Optimality of Approximate Message Passing Algorithms for Spiked Matrix Models with Rotationally Invariant Noise](https://arxiv.org/abs/2405.18081).
 
 # References
 The BAMP algorithms and Replica results are implemented base on the following papers
