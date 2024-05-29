@@ -1,4 +1,4 @@
-# OAMP
+# OAMP(Orthogonal Approximate Message Passing)
 Matlab code for [Optimality of Approximate Message Passing Algorithms for Spiked Matrix Models with Rotationally Invariant Noise](https://arxiv.org/abs/2405.18081).
 
 # References
