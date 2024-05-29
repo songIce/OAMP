@@ -1,5 +1,9 @@
-%% Resolvent approach, optimal v chooses by 1/tau2 + J(lambda1) 
-% and comprare with the search one 
+% This code implements OAMP with a polynomial matrix denoiser.
+% You can choose different eigenvalue distributions and signal priors.
+% The degree of the polynomial should not be larger than 10, 
+% as higher degrees may cause numerical instability.
+% Some notations differ from those in the paper.
+% more details refer to OAMP_demo.mlx file
 
 clear all;
 clc;
@@ -8,7 +12,7 @@ close all;
 Iteration = 20;
 TestNum = 1;
 N = 5e5;
-D = 5; %order of polynomial
+D = 5; %degree of polynomial
 
 omega = 0.3; % [0,1]; r_0 = sqrt(omega)*x_0 + sqrt(1-omega)*z 
 
@@ -17,11 +21,11 @@ omega = 0.3; % [0,1]; r_0 = sqrt(omega)*x_0 + sqrt(1-omega)*z
 theta = 2;
 
 % Eigenvalue distribution 
-Eig_dist = "beta"; % "quartic", "sestic", "beta"
+Eig_dist = "sestic"; % "quartic", "sestic", "beta"
 gamma = 0; % quartic parameter, mu=1 is wigner distribution
 
 Prior_x = "Rad"; % "GB", "Rad"
-rho = 0.1;
+epsilon = 0.1; % for GB prior
 
 %% MSE
 % || xxT - rrT ||_F
@@ -48,7 +52,7 @@ for itest = 1:TestNum
         kappa = 0;
         xi = 27/80;
         a2 = 2/3;
-        rhofun = @(y) (gamma+2*a2*kappa+6*a2^2*xi+(kappa+2*a2*xi)*y.^2+xi*y.^4)*sqrt(4*a2-y.^2)/(2*pi);
+        rhofun = @(y) (6*a2^2*xi+(2*a2*xi)*y.^2+xi*y.^4).*sqrt(4*a2-y.^2)/(2*pi);
         d = slicesample(1,N,"pdf",rhofun); % Generating eigenvalues 
     elseif Eig_dist == "beta"
         beta_a = 1;
@@ -65,9 +69,9 @@ for itest = 1:TestNum
     %% Generating signal and DFT operator
     if Prior_x == "GB"
         x = randn(N,1);    %高斯信道 
-        pos = rand(N,1) < rho;                       
+        pos = rand(N,1) < epsilon;                       
         x= pos.*x;   
-    %     x = x./sqrt(rho);
+    %     x = x./sqrt(epsilon);
         x = x./norm(x)*sqrt(N);
     elseif Prior_x == "Rad"
         x = sign(randn(N,1));
@@ -83,33 +87,27 @@ for itest = 1:TestNum
 
     %% se function
     if Eig_dist=="quartic"
-        J_Y = @(Y) gamma*theta*Y-kappa*theta^2*Y.^2+kappa*theta*Y.^3;
+        J_Y = @(Y) gamma.*theta.*Y-kappa.*theta^2.*Y.^2+kappa.*theta.*Y.^3;
         J_lambda1 = theta^2*a2*(gamma+2*a2*kappa)^2 + 1;
-        P_func = @(epsilon,Y) 1./(1./epsilon + J_lambda1 - J_Y(Y)); 
-        Phi_snr = @(epsilon) 1./integral(@(lam) P_func(epsilon,lam).*rhofun(lam),-2*sqrt(a2),2*sqrt(a2)) - (1/epsilon+1);
+        P_func = @(rho,Y) 1./(rho + J_lambda1 - J_Y(Y)); 
+        Phi_snr = @(rho) 1./integral(@(lam) P_func(rho,lam).*rhofun(lam),-2*sqrt(a2),2*sqrt(a2)) - (rho+1);
     elseif Eig_dist=="sestic"
-        J_Y = @(Y) gamma*theta*Y-kappa*theta^2*Y.^2+kappa*theta*Y.^3;
-        J_lambda1 = 27/50*Theta^2 + 1;
-        P_func = @(epsilon,Y) 1./(1./epsilon + J_lambda1 - J_Y(Y)); 
-        Phi_snr = @(epsilon) 1./integral(@(lam) P_func(epsilon,lam).*rhofun(lam),-2*sqrt(a2),2*sqrt(a2)) - (1/epsilon+1);
+        J_Y = @(Y) xi.*theta.*Y.^5-xi.*theta^2.*Y.^4-xi.*theta^2.*Y.^2;
+        J_lambda1 = 27/50*theta^2 + 1;
+        P_func = @(rho,Y) 1./(rho + J_lambda1 - J_Y(Y)); 
+        Phi_snr = @(rho) 1./integral(@(lam) P_func(rho,lam).*rhofun(lam),-2*sqrt(a2),2*sqrt(a2)) - (rho+1);
     
     end
-    J_lambda1 = theta^2*a2*(gamma+2*a2*kappa)^2 + 1;
     
-%     %% PCAinit  
-%     if PCA_init == "T"
-%         [max_eig_cal,overlap_cal] = Max_eig(theta,gamma,Eig_dist,d);
-%         sigma2_0 = 1/overlap_cal-1;
-%         fprintf("sigma2_0 = %e \n", sigma2_0)
-%     end
-    %% State evolution
+
+    %% State evolution for Resolvent estimator, only work in quartic and sestic
     N_SE = 2e7;
     
     sigma2_se = zeros(Iteration,1);
     
     if Prior_x == "GB"
         x_SE = randn(N_SE,1);    %高斯信道 
-        pos = rand(N_SE,1) < rho;                       
+        pos = rand(N_SE,1) < epsilon;                       
         x_SE= pos.*x_SE;   
         x_SE = x_SE./norm(x_SE)*sqrt(N_SE);
     elseif Prior_x == "Rad"
@@ -125,7 +123,7 @@ for itest = 1:TestNum
             % MMSE function
             if Prior_x == "GB"
                 r_hat_SE = x_SE + sqrt(sigma2_SE) * randn(N_SE,1);
-                [x_hat_post_SE,Var] = MMSE_GB(r_hat_SE,sigma2_SE,rho);
+                [x_hat_post_SE,Var] = MMSE_GB(r_hat_SE,sigma2_SE,epsilon);
                 MMSE = mean(Var);
     %             div = r_hat'*x_hat_post/N/tau2;
             elseif Prior_x == "Rad"
@@ -134,9 +132,9 @@ for itest = 1:TestNum
             
             dmmse = 1/( 1/MMSE - 1/sigma2_SE );
     
-            epsilon = 1/(1-dmmse)-1;
+            rho = 1/dmmse-1;
     
-            sigma2_SE = 1/Phi_snr(epsilon);
+            sigma2_SE = 1/Phi_snr(rho);
     
             sigma2_se(it) = sigma2_SE;
         
@@ -148,7 +146,7 @@ for itest = 1:TestNum
     end
     
     
-    %% Polynomial SE
+    %% Polynomial SE for polynomial estimator
     
     sigma2_se = zeros(Iteration,1);
     sigma2_SE = (1-omega)/omega;
@@ -167,14 +165,14 @@ for itest = 1:TestNum
         
         dmmse = 1/( 1/MMSE - 1/sigma2_SE );
         
-        epsilon = 1/(1-dmmse)-1;
+        rho = 1/dmmse-1;
         
-        [~,snr_SE] = Poly_se(d,theta,epsilon,D);
+        [~,snr_SE] = Poly_se(d,theta,1/rho,D);
         sigma2_SE = 1/snr_SE;
 
         sigma2_se(it) = sigma2_SE;
     
-        MSE_cal_P(it,itest) = (1-(1-MMSE)^2)/2;
+        MSE_cal_P(it,itest) = MMSE;
     
     end
     
@@ -192,7 +190,7 @@ for itest = 1:TestNum
     
         % MMSE function
         if Prior_x == "GB"
-            [x_hat_post,Var] = MMSE_GB(r_hat,sigma2,rho);
+            [x_hat_post,Var] = MMSE_GB(r_hat,sigma2,epsilon);
             div = mean(Var)/sigma2;
 %             div = r_hat'*x_hat_post/N/tau2;
         elseif Prior_x == "Rad"
@@ -204,11 +202,11 @@ for itest = 1:TestNum
         x_hat = C*(x_hat_post - div * r_hat);
 
         dmmse = 1/( 1/mean(Var) - 1/sigma2 );
-        epsilon = 1/(1-dmmse)-1;
+        rho = 1/dmmse-1;
         
-        fprintf("epsilon: test=%e, cal=%e \n",epsilon,norm(x_hat/(x'*x_hat/N) - x)^2/N)
+        fprintf("rho: test=%e, cal=%e \n",rho,norm(x_hat/(x'*x_hat/N) - x)^2/N)
         
-        [Alpha,snr] = Poly_se(d,theta,epsilon,D);
+        [Alpha,snr] = Poly_se(d,theta,1/rho,D);
 
         R = zeros(N,D);
         mean_d = zeros(D,1);
@@ -232,7 +230,7 @@ for itest = 1:TestNum
         fprintf("alpha: test=%e, cal=%e \n",1,r_hat'*x/N)
         fprintf("sigma: test=%e, cal=%e, 1/snr=%e \n",sigma2,norm(r_hat./(r_hat'*x/N) - x)^2/norm(x)^2,1/snr)
         
-        MSE_sim(it,itest) = MSE(x_hat_post,x,N);
+        MSE_sim(it,itest) = norm(x_hat_post-x)^2/N;
 
     end
     
@@ -256,13 +254,13 @@ legend("OAMP","SE-Polynomial","SE-Resolvent")
 
 
 
-function [hat_x,var_x]=MMSE_GB(R,Sigma,rho)
-sigma_x=1/rho;
+function [hat_x,var_x]=MMSE_GB(R,Sigma,epsilon)
+sigma_x=1/epsilon;
 
 %% Perform MMSE estimator
 Gaussian=@(x,a,A) 1./sqrt(2*pi*A).*exp(-1/2./A.*abs(x-a).^2);
 C=(rho.*Gaussian(0,R,Sigma+sigma_x))./...
-    ((1-rho).*Gaussian(0,R,Sigma)+rho.*Gaussian(0,R,Sigma+sigma_x));
+    ((1-epsilon).*Gaussian(0,R,Sigma)+epsilon.*Gaussian(0,R,Sigma+sigma_x));
 
 hat_x=C.*(R*sigma_x)./(sigma_x+Sigma);
 var_x=C.*(abs((R*sigma_x)./(sigma_x+Sigma)).^2+(sigma_x*Sigma)./(sigma_x+Sigma))-abs(hat_x).^2;

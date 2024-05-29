@@ -1,5 +1,6 @@
-%% Resolvent approach, optimal v chooses by 1/tau2 + J(lambda1) 
-% and comprare with the search one 
+% This code implements OAMP with a resolvent matrix denoiser.
+% Some notations differ from those in the paper.
+% more details refer to OAMP_demo.mlx file
 
 clear all;
 clc;
@@ -9,18 +10,18 @@ Iteration = 30;
 N = 1e6;
 
 PCA_init = "F";
-omega = 0;  % initial omega in [0,1]
+omega = 0.1;  % initial omega in [0,1]
 
 % Input snr, Y=theta/N*x*xT + W
 Thetagrid = 0.1 : 0.1 : 3;
-Thetagrid = 2.5;
+Thetagrid = 1.5;
 
 % Eigenvalue distribution 
 Eig_dist = "quartic"; % "quartic", "sestic"
 mu = 0; % quartic parameter, mu=1 is wigner distribution
 
 % signal distribution
-prior = "2Points"; % "Rad", "sparse", "3Points"
+prior = "Rad"; % "Rad", "sparse", "3Points"
 sparsity = 0.02;
 alpha1 = 1/2;
 alpha2 = 1/5;

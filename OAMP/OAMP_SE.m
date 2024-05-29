@@ -1,4 +1,4 @@
-% state evolution of OAMP
+% state evolution of OAMP, Some notations differ from those in the paper.
 
 clear all;
 clc;
@@ -88,11 +88,9 @@ for itest = 1:length(Thetagrid)
     if Eig_dist=="quartic"
         J_Y = @(Y) gamma*Theta*Y-kappa*Theta^2*Y.^2+kappa*Theta*Y.^3;
         J_const = Theta^2*a2*(gamma+2*a2*kappa)^2 + 1;
-        Phi_lambda = @(Y) 1./(J_const-J_Y(Y));
     elseif Eig_dist=="sestic"
         J_Y = @(Y) xi*Theta*Y.^5-xi*Theta^2*Y.^4-xi*Theta^2*Y.^2;
         J_const = 27/50*Theta^2 + 1;
-        Phi_lambda = @(Y) 1./(J_const-J_Y(Y));
     end
     P_func = @(rho,Y) 1./(rho + J_const - J_Y(Y)); 
     Phi_snr = @(rho) 1./integral(@(lam) P_func(rho,lam).*rhofun(lam),-2*sqrt(a2),2*sqrt(a2)) - (rho+1);
