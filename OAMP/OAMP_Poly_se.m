@@ -90,6 +90,8 @@ for itest = 1:TestNum
         J_Y = @(Y) gamma.*theta.*Y-kappa.*theta^2.*Y.^2+kappa.*theta.*Y.^3;
         J_lambda1 = theta^2*a2*(gamma+2*a2*kappa)^2 + 1;
         P_func = @(rho,Y) 1./(rho + J_lambda1 - J_Y(Y)); 
+        % we define snr here, it equals to omega/(1-omega) in paper, the
+        % details refer to OAMP_demo.mlx file
         Phi_snr = @(rho) 1./integral(@(lam) P_func(rho,lam).*rhofun(lam),-2*sqrt(a2),2*sqrt(a2)) - (rho+1);
     elseif Eig_dist=="sestic"
         J_Y = @(Y) xi.*theta.*Y.^5-xi.*theta^2.*Y.^4-xi.*theta^2.*Y.^2;

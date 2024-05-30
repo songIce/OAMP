@@ -93,6 +93,8 @@ for itest = 1:length(Thetagrid)
         J_const = 27/50*Theta^2 + 1;
     end
     P_func = @(rho,Y) 1./(rho + J_const - J_Y(Y)); 
+    % we define snr here, it equals to omega/(1-omega) in paper, the
+    % details refer to OAMP_demo.mlx file
     Phi_snr = @(rho) 1./integral(@(lam) P_func(rho,lam).*rhofun(lam),-2*sqrt(a2),2*sqrt(a2)) - (rho+1);
 
     %% State evolution

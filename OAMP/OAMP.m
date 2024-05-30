@@ -126,7 +126,8 @@ for itest = 1:length(Thetagrid)
         J_lambda1 = 27/50*Theta^2 + 1;
         Phi_lambda = @(Y) 1./(J_lambda1-J_Y(Y));
     end
-
+    % we define snr here, it equals to omega/(1-omega) in paper, the
+    % details refer to OAMP_demo.mlx file
     P_func = @(rho,Y) 1./(rho + J_lambda1 - J_Y(Y)); 
     Phi_snr = @(rho) 1./integral(@(lam) P_func(rho,lam).*rhofun(lam),-2*sqrt(a2),2*sqrt(a2)) - (rho+1);
 
